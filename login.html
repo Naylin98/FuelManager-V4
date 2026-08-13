@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - FuelManager Pro</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="css/auth.css">
+</head>
+<body class="login-body">
+
+    <!-- JavaScript မှ Login Screen ကို ဤ Body ထဲသို့ အလိုအလျောက် ထည့်သွင်းပေးပါမည် -->
+
+    <!-- Auth Logic & Redirect -->
+    <script type="module">
+        import { renderLoginScreen } from './js/auth.js';
+        
+        renderLoginScreen(() => {
+            console.log("Login Successful! Redirecting to index.html...");
+            // Login အောင်မြင်ပါက index.html သို့ တိုက်ရိုက်သွားမည်
+            window.location.href = 'index.html'; 
+        });
+    </script>
+
+</body>
+</html>

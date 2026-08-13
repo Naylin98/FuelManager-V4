@@ -1,0 +1,116 @@
+/* css/report.css */
+
+:root {
+    --report-bg: #ffffff;
+    --report-panel-bg: #ffffff;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --input-bg: #ffffff;
+    --input-text: #1e293b;
+    --input-border: #94a3b8;
+    --glass-border: rgba(150, 150, 150, 0.15);
+    --table-header-bg: rgba(0, 0, 0, 0.03);
+    --primary: #3b82f6;
+}
+
+/* Dark Mode support for both body.dark-mode and [data-theme="dark"] */
+body.dark-mode, [data-theme="dark"] {
+    --report-bg: #0f172a;
+    --report-panel-bg: #1e293b;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --input-bg: #1e293b !important;
+    --input-text: #f8fafc !important;
+    --input-border: rgba(255, 255, 255, 0.4);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --table-header-bg: rgba(255, 255, 255, 0.05);
+    --primary: #6366f1;
+}
+
+.report-container {
+    padding: 24px;
+    animation: fadeIn 0.3s ease;
+    background-color: var(--report-bg);
+    color: var(--text-main);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.report-header h3 {
+    color: var(--text-main);
+}
+
+/* Filter Inputs & Selects - Force Dark Mode Styling */
+body.dark-mode .filter-input, 
+[data-theme="dark"] .filter-input,
+body.dark-mode input[type="text"],
+body.dark-mode input[type="date"],
+body.dark-mode input[type="month"],
+body.dark-mode select,
+[data-theme="dark"] input[type="text"],
+[data-theme="dark"] input[type="date"],
+[data-theme="dark"] input[type="month"],
+[data-theme="dark"] select {
+    background-color: #1e293b !important;
+    color: #f8fafc !important;
+    /* ယခင် 0.2 အစား 0.4 သို့မဟုတ် 0.5 ထားပေးပါ */
+    border: 1px solid rgba(255, 255, 255, 0.4) !important; 
+}
+
+body.dark-mode select option,
+[data-theme="dark"] select option {
+    background-color: #1e293b !important;
+    color: #f8fafc !important;
+}
+
+/* Placeholder adjustments */
+body.dark-mode .filter-input::placeholder,
+[data-theme="dark"] .filter-input::placeholder {
+    color: #94a3b8 !important;
+    opacity: 1;
+}
+
+/* Calendar icon filter for dark mode */
+body.dark-mode .filter-input::-webkit-calendar-picker-indicator,
+[data-theme="dark"] .filter-input::-webkit-calendar-picker-indicator {
+    filter: invert(1) hue-rotate(180deg) !important;
+}
+
+/* Table styling in dark mode */
+body.dark-mode .table-wrapper,
+[data-theme="dark"] .table-wrapper {
+    background: var(--report-panel-bg);
+}
+
+body.dark-mode .report-table,
+[data-theme="dark"] .report-table {
+    color: var(--text-main);
+}
+
+body.dark-mode .report-table th,
+[data-theme="dark"] .report-table th {
+    background: var(--table-header-bg);
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--glass-border);
+}
+
+body.dark-mode .report-table td,
+[data-theme="dark"] .report-table td {
+    border-bottom: 1px solid var(--glass-border);
+}
+
+/* --- Dark Mode Buttons Final Fix --- */
+[data-theme="dark"] .btn-filter,
+body.dark-mode .btn-filter,
+[data-theme="dark"] #btn-apply-filter,
+body.dark-mode #btn-apply-filter {
+    background-color: var(--primary) !important;
+    color: #ffffff !important;
+    border: none !important;
+}
+
+[data-theme="dark"] .btn-export,
+body.dark-mode .btn-export {
+    background-color: #334155 !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}

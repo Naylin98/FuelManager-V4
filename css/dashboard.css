@@ -1,0 +1,359 @@
+/* css/dashboard.css */
+
+/* === Layout Structure === */
+.app-layout {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+    background: var(--bg-body);
+    transition: background 0.3s ease;
+}
+
+/* === Sidebar === */
+.sidebar {
+    width: 260px;
+    height: calc(100vh - 32px);
+    margin: 16px;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 100;
+}
+
+/* Collapsed State (Desktop) */
+.sidebar.collapsed {
+    width: 80px;
+}
+.sidebar.collapsed .logo-text,
+.sidebar.collapsed .nav-text {
+    opacity: 0;
+    pointer-events: none;
+    display: none;
+}
+
+.sidebar-header {
+    padding: 24px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid var(--glass-border);
+}
+.logo-icon { font-size: 28px; }
+.logo-text { font-size: 20px; font-weight: 700; white-space: nowrap; }
+
+.mobile-close-btn {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--text-main);
+    font-size: 18px;
+    cursor: pointer;
+    margin-left: auto;
+}
+
+.sidebar-nav {
+    flex: 1;
+    padding: 20px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    font-size: 15px;
+}
+
+.nav-item:hover {
+    background: rgba(79, 70, 229, 0.1);
+    color: var(--primary);
+}
+
+.nav-item.active {
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+}
+
+.sidebar-footer {
+    padding: 20px 12px;
+    border-top: 1px solid var(--glass-border);
+}
+.text-danger:hover {
+    background: rgba(220, 38, 38, 0.1);
+    color: #dc2626;
+}
+
+/* === Main Content Area === */
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    padding: 16px 16px 16px 0;
+}
+
+/* === Navbar === */
+.navbar {
+    height: 70px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 24px;
+    margin-bottom: 16px;
+}
+
+.nav-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.menu-toggle {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: var(--text-main);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.page-title {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.icon-btn {
+    background: transparent;
+    border: 1px solid var(--glass-border);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+    cursor: pointer;
+    color: var(--text-main);
+    transition: background 0.2s;
+}
+.icon-btn:hover { background: rgba(0,0,0,0.05); }
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-left: 16px;
+    border-left: 1px solid var(--glass-border);
+}
+.avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+/* === Router View (Dynamic Content) === */
+.router-view {
+    flex: 1;
+    overflow-y: auto;
+    border-radius: 20px;
+}
+
+/* === Responsive Mobile Design === */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 90;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        padding: 16px;
+    }
+    
+    .sidebar {
+        position: fixed;
+        left: -300px;
+        top: 0;
+        margin: 0;
+        height: 100vh;
+        width: 280px;
+        border-radius: 0;
+        box-shadow: 5px 0 25px rgba(0,0,0,0.1);
+    }
+    
+    .sidebar.mobile-open {
+        left: 0;
+    }
+    
+    .mobile-close-btn {
+        display: block;
+    }
+    
+    .sidebar-overlay.active {
+        display: block;
+        opacity: 1;
+    }
+    
+    .user-name {
+        display: none;
+    }
+
+    /* === Dashboard Module Styles === */
+
+.dashboard-container {
+    padding: 10px;
+    animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Stat Cards Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.stat-card {
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    background: rgba(79, 70, 229, 0.1);
+}
+
+.stat-details h3 {
+    font-size: 14px;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.stat-details .stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+/* Charts Section */
+.charts-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.chart-panel {
+    padding: 20px;
+    min-height: 350px;
+}
+.chart-panel h3 {
+    margin-bottom: 20px;
+    font-size: 16px;
+    color: var(--text-main);
+}
+
+.canvas-container {
+    position: relative;
+    height: 280px;
+    width: 100%;
+}
+
+/* Recent Table Area */
+.table-panel {
+    padding: 20px;
+    overflow-x: auto;
+}
+.table-panel h3 {
+    margin-bottom: 16px;
+}
+
+.modern-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px;
+}
+.modern-table th {
+    text-align: left;
+    padding: 14px 16px;
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 14px;
+    border-bottom: 1px solid var(--glass-border);
+}
+.modern-table td {
+    padding: 16px;
+    border-bottom: 1px solid var(--glass-border);
+    font-size: 14.5px;
+}
+.badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+A **dashboard** is a visual interface that organizes and presents complex information in an easy-to-read, at-a-glance format. 
+
+<Image src="image_agent_tag_13008153732702304474" alt="A modern digital analytics dashboard showing line graphs, a donut chart, and bar charts on a light background with a dark sidebar." caption="Modern Digital Dashboard" />
+
+While the term originally referred to the barrier at the front of a horse-drawn carriage (to protect the driver from mud "dashed" up by horses), today it almost always refers to digital interfaces. 
+
+Depending on what you are looking for, "dashboard" usually falls into one of these categories:
+
+*   **Data/Analytics Dashboards:** Tools like Google Analytics or Tableau that visualize metrics, KPIs (Key Performance Indicators), and trends using charts, graphs, and tables. 
+*   **Software Admin Panels:** The backend interface of a website or app (like WordPress) where an administrator manages content, users, and settings.
+*   **Automotive Dashboards:** The physical control panel in a car containing the speedometer, fuel gauge, and warning lights.
+*   **Personal Productivity:** Apps like Notion or Apple Health that aggregate your personal tasks, habits, or fitness data into a central hub.
+
+<ElicitationsGroup message="To help me give you the best information, what kind of dashboard are you interested in?">
+{/* Reason: The user's prompt was a single word. Giving them clear paths helps narrow down the intent. */}
+  <Elicitation label="Dashboard UI/UX design tips" query="What are the best practices for designing a modern dashboard UI?" />
+  <Elicitation label="How to build an admin dashboard" query="What tech stack should I use to build a web admin dashboard?" />
+  <Elicitation label="The history of car dashboards" query="What is the history of the dashboard in cars?" />
+</ElicitationsGroup>
+}
