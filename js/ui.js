@@ -2,26 +2,8 @@
 import { logoutUser } from './auth.js';
 
 export function initUI() {
-    // --- 1. Theme Management ---
-    const themeToggleBtn = document.getElementById('theme-toggle');
-    const themeIcon = document.getElementById('theme-icon');
-    
-    // LocalStorage ထဲက Theme အဟောင်းကို စစ်ဆေးခြင်း
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    updateThemeIcon(savedTheme);
-
-    if (themeToggleBtn) {
-        themeToggleBtn.addEventListener('click', () => {
-            let currentTheme = document.documentElement.getAttribute('data-theme');
-            let newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            
-            // HTML tag တွင် data-theme အသစ် သတ်မှတ်ခြင်း
-            document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme); // မှတ်ဉာဏ်တွင် သိမ်းရန်
-            updateThemeIcon(newTheme);
-        });
-    }
+    // --- 1. Theme Management (Day/Night Mode) စတင်ခြင်း ---
+    initTheme();
 
     // --- 2. Sidebar & Mobile Menu Management ---
     const sidebar = document.getElementById('sidebar');
@@ -63,16 +45,47 @@ export function initUI() {
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) {
         logoutBtn.onclick = () => {
-            logoutUser(); // auth.js မှ Function ကိုခေါ်မည်
+            logoutUser();
         };
     }
 
     // --- 4. Role Based Access ကို ခေါ်ယူအသုံးပြုခြင်း ---
-    // UI စတင်တာနဲ့ User ရဲ့ Role အလိုက် Menu တွေကို အပိတ်/အဖွင့် လုပ်ပေးပါမည်
     applyRoleBasedAccess();
 }
 
-// --- Helper Functions ---
+// ==========================================
+// --- Theme Management Functions ---
+// ==========================================
+
+export function initTheme() {
+    const themeToggleBtn = document.getElementById('theme-toggle');
+
+    // 1. LocalStorage တွင် သိမ်းထားသည်ကို စစ်မည်၊ မရှိပါက System (Device) ရဲ့ Dark Mode Settings ကို အလိုအလျောက် ယူမည်
+    const savedTheme = localStorage.getItem('theme');
+    const systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    // Theme အသစ် သတ်မှတ်ခြင်း (Saved Theme > System Preference > Light Mode)
+    const initialTheme = savedTheme ? savedTheme : (systemPrefersDark ? 'dark' : 'light');
+    
+    // Theme ကို DOM ပေါ်သို့ စတင်တပ်ဆင်မည်
+    setTheme(initialTheme);
+
+    // 2. Toggle Button နှိပ်သည့်အခါ ပြောင်းလဲပေးမည်
+    if (themeToggleBtn) {
+        themeToggleBtn.onclick = () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            setTheme(newTheme);
+        };
+    }
+}
+
+// Theme ပြောင်းလဲပေးသည့် Central Helper Function
+export function setTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+    updateThemeIcon(theme);
+}
 
 function updateThemeIcon(theme) {
     const themeIcon = document.getElementById('theme-icon');
@@ -81,7 +94,10 @@ function updateThemeIcon(theme) {
     }
 }
 
-// Sidebar Nav များကို Role အလိုက် ထိန်းချုပ်မည့် Function
+// ==========================================
+// --- Role Based Access Control ---
+// ==========================================
+
 export function applyRoleBasedAccess() {
     const userData = JSON.parse(localStorage.getItem('fuel_app_current_user'));
     if (!userData) return;
@@ -89,17 +105,14 @@ export function applyRoleBasedAccess() {
     const navItems = document.querySelectorAll('#sidebar-nav .nav-item');
     
     if (userData.role === 'Admin') {
-        // Admin ဆိုလျှင် အားလုံးမြင်ရမည်
         navItems.forEach(item => {
-            if (item.id !== 'logout-btn') { // Logout ခလုတ်ကို မဖျောက်မိစေရန် စစ်ဆေးခြင်း
+            if (item.id !== 'logout-btn') {
                 item.style.display = 'flex';
             }
         });
     } else {
-        // User ဆိုလျှင် Allowed Tabs ထဲတွင် ပါဝင်သော Menu များကိုသာ ပြမည်
-        const allowed = userData.allowedTabs.split(','); 
+        const allowed = userData.allowedTabs ? userData.allowedTabs.split(',') : []; 
         navItems.forEach(item => {
-            // Logout ခလုတ်ကို အမြဲတမ်း ပြထားရန်
             if (item.id === 'logout-btn') return; 
             
             const path = item.getAttribute('data-path');
