@@ -2,7 +2,7 @@
 import { logoutUser } from './auth.js';
 
 export function initUI() {
-    // --- 1. Theme Management (Day/Night Mode) စတင်ခြင်း ---
+    // --- 1. Theme Management (Day/Night Mode) ---
     initTheme();
 
     // --- 2. Sidebar & Mobile Menu Management ---
@@ -49,28 +49,47 @@ export function initUI() {
         };
     }
 
-    // --- 4. Role Based Access ကို ခေါ်ယူအသုံးပြုခြင်း ---
+    // --- 4. Role Based Access ---
     applyRoleBasedAccess();
+
+    // --- 5. User Profile/Name ပြောင်းလဲခြင်း ---
+    renderUserInfo();
+}
+
+// ==========================================
+// --- User Profile Display Function ---
+// ==========================================
+export function renderUserInfo() {
+    const userData = JSON.parse(localStorage.getItem('fuel_app_current_user'));
+    if (!userData || !userData.username) return;
+
+    const userNameEl = document.getElementById('user-name');
+    const userAvatarEl = document.getElementById('user-avatar');
+
+    // User Name ကို ပြောင်းပေးခြင်း
+    if (userNameEl) {
+        userNameEl.textContent = userData.username;
+    }
+
+    // Avatar Circle ထဲတွင် Name ရဲ့ ပထမဆုံး စာလုံး (Capital) ကို ပြပေးခြင်း
+    if (userAvatarEl) {
+        const initial = userData.username.charAt(0).toUpperCase();
+        userAvatarEl.textContent = initial;
+    }
 }
 
 // ==========================================
 // --- Theme Management Functions ---
 // ==========================================
-
 export function initTheme() {
     const themeToggleBtn = document.getElementById('theme-toggle');
 
-    // 1. LocalStorage တွင် သိမ်းထားသည်ကို စစ်မည်၊ မရှိပါက System (Device) ရဲ့ Dark Mode Settings ကို အလိုအလျောက် ယူမည်
     const savedTheme = localStorage.getItem('theme');
     const systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    
-    // Theme အသစ် သတ်မှတ်ခြင်း (Saved Theme > System Preference > Light Mode)
     const initialTheme = savedTheme ? savedTheme : (systemPrefersDark ? 'dark' : 'light');
     
-    // Theme ကို DOM ပေါ်သို့ စတင်တပ်ဆင်မည်
     setTheme(initialTheme);
 
-    // 2. Toggle Button နှိပ်သည့်အခါ ပြောင်းလဲပေးမည်
     if (themeToggleBtn) {
         themeToggleBtn.onclick = () => {
             const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
@@ -80,7 +99,6 @@ export function initTheme() {
     }
 }
 
-// Theme ပြောင်းလဲပေးသည့် Central Helper Function
 export function setTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('theme', theme);
@@ -97,7 +115,6 @@ function updateThemeIcon(theme) {
 // ==========================================
 // --- Role Based Access Control ---
 // ==========================================
-
 export function applyRoleBasedAccess() {
     const userData = JSON.parse(localStorage.getItem('fuel_app_current_user'));
     if (!userData) return;
