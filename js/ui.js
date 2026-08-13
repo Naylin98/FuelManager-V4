@@ -1,7 +1,8 @@
 // js/ui.js
 import { logoutUser } from './auth.js';
 
-export export function initUI() {
+export function initUI() {
+    // --- 1. Theme Management ---
     const themeToggleBtn = document.getElementById('theme-toggle');
     const themeIcon = document.getElementById('theme-icon');
     
@@ -21,14 +22,6 @@ export export function initUI() {
             updateThemeIcon(newTheme);
         });
     }
-}
-
-function updateThemeIcon(theme) {
-    const themeIcon = document.getElementById('theme-icon');
-    if (themeIcon) {
-        themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
-    }
-}
 
     // --- 2. Sidebar & Mobile Menu Management ---
     const sidebar = document.getElementById('sidebar');
@@ -72,5 +65,49 @@ function updateThemeIcon(theme) {
         logoutBtn.onclick = () => {
             logoutUser(); // auth.js မှ Function ကိုခေါ်မည်
         };
+    }
+
+    // --- 4. Role Based Access ကို ခေါ်ယူအသုံးပြုခြင်း ---
+    // UI စတင်တာနဲ့ User ရဲ့ Role အလိုက် Menu တွေကို အပိတ်/အဖွင့် လုပ်ပေးပါမည်
+    applyRoleBasedAccess();
+}
+
+// --- Helper Functions ---
+
+function updateThemeIcon(theme) {
+    const themeIcon = document.getElementById('theme-icon');
+    if (themeIcon) {
+        themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
+    }
+}
+
+// Sidebar Nav များကို Role အလိုက် ထိန်းချုပ်မည့် Function
+export function applyRoleBasedAccess() {
+    const userData = JSON.parse(localStorage.getItem('fuel_app_current_user'));
+    if (!userData) return;
+
+    const navItems = document.querySelectorAll('#sidebar-nav .nav-item');
+    
+    if (userData.role === 'Admin') {
+        // Admin ဆိုလျှင် အားလုံးမြင်ရမည်
+        navItems.forEach(item => {
+            if (item.id !== 'logout-btn') { // Logout ခလုတ်ကို မဖျောက်မိစေရန် စစ်ဆေးခြင်း
+                item.style.display = 'flex';
+            }
+        });
+    } else {
+        // User ဆိုလျှင် Allowed Tabs ထဲတွင် ပါဝင်သော Menu များကိုသာ ပြမည်
+        const allowed = userData.allowedTabs.split(','); 
+        navItems.forEach(item => {
+            // Logout ခလုတ်ကို အမြဲတမ်း ပြထားရန်
+            if (item.id === 'logout-btn') return; 
+            
+            const path = item.getAttribute('data-path');
+            if (allowed.includes(path)) {
+                item.style.display = 'flex';
+            } else {
+                item.style.display = 'none';
+            }
+        });
     }
 }
