@@ -1,25 +1,34 @@
 // js/ui.js
 import { logoutUser } from './auth.js';
 
-export function initUI() {
-    // --- 1. Theme Management ---
-    const themeBtn = document.getElementById('theme-toggle');
+export export function initUI() {
+    const themeToggleBtn = document.getElementById('theme-toggle');
     const themeIcon = document.getElementById('theme-icon');
     
-    const savedTheme = localStorage.getItem('fuel_theme') || 'light';
+    // LocalStorage ထဲက Theme အဟောင်းကို စစ်ဆေးခြင်း
+    const savedTheme = localStorage.getItem('theme') || 'light';
     document.documentElement.setAttribute('data-theme', savedTheme);
-    if(themeIcon) themeIcon.textContent = savedTheme === 'light' ? '🌙' : '☀️';
+    updateThemeIcon(savedTheme);
 
-    if (themeBtn) {
-        themeBtn.onclick = () => {
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', () => {
+            let currentTheme = document.documentElement.getAttribute('data-theme');
+            let newTheme = currentTheme === 'dark' ? 'light' : 'dark';
             
+            // HTML tag တွင် data-theme အသစ် သတ်မှတ်ခြင်း
             document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('fuel_theme', newTheme);
-            themeIcon.textContent = newTheme === 'light' ? '🌙' : '☀️';
-        };
+            localStorage.setItem('theme', newTheme); // မှတ်ဉာဏ်တွင် သိမ်းရန်
+            updateThemeIcon(newTheme);
+        });
     }
+}
+
+function updateThemeIcon(theme) {
+    const themeIcon = document.getElementById('theme-icon');
+    if (themeIcon) {
+        themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
+    }
+}
 
     // --- 2. Sidebar & Mobile Menu Management ---
     const sidebar = document.getElementById('sidebar');
