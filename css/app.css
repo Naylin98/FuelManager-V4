@@ -202,3 +202,36 @@ body.login-body {
     margin-bottom: 20px;
     border: 1px solid rgba(220, 38, 38, 0.3);
 }
+
+/* === User Profile & Circle Avatar === */
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    padding: 4px 12px 4px 4px;
+    border-radius: 30px;
+    backdrop-filter: blur(10px);
+}
+
+/* စာလုံး အဝိုင်းပုံစံ (Circle Avatar) */
+.avatar-circle {
+    width: 35px;
+    height: 35px;
+    background-color: var(--primary); /* App ရဲ့ Theme အရောင်အတိုင်း ပေါ်မည် */
+    color: #ffffff;
+    border-radius: 50%;               /* အဝိုင်းပုံစံ ပြုလုပ်ခြင်း */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+}
+
+#user-name {
+    font-weight: 600;
+    color: var(--text-main);
+    font-size: 14px;
+}
