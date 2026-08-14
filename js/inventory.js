@@ -15,7 +15,14 @@ export function renderInventoryModule(container) {
             <!-- Tab 1: Current Stock Summary -->
             <div id="tab-stock-view" class="tab-content" style="display: block;">
                 <div class="glass-panel" style="padding: 20px; border-radius: 12px;">
-                    <h3>📊 Stock Status Overview</h3>
+                    <!-- 🌟 Header နှင့် Excel Export ခလုတ် 🌟 -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;">
+                        <h3 style="margin: 0;">📊 Stock Status Overview</h3>
+                        <button id="btn-export-excel" style="padding: 8px 16px; background: #16a34a; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                            📊 Export to Excel
+                        </button>
+                    </div>
+
                     <div id="inventory-loading" style="text-align: center; padding: 20px;">⏳ Loading Inventory Data...</div>
                     <div style="overflow-x: auto; margin-top: 15px;">
                         <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
@@ -176,6 +183,8 @@ export function renderInventoryModule(container) {
 
     let inventoryRawData = [];
     let masterItemsList = [];
+    let currentSummaryMap = {}; // 🌟 Excel ထုတ်ရန် Summary Data သိမ်းမည့် Variable
+
     fetchInventoryData();
 
     // Tab Elements
@@ -247,7 +256,7 @@ export function renderInventoryModule(container) {
             const reader = new FileReader();
             reader.onload = function(uploadEvent) {
                 const base64Data = uploadEvent.target.result;
-                selectedFileBase64 = base64Data.split(',')[1]; // Base64 string သီးသန့်ဖြတ်ယူခြင်း
+                selectedFileBase64 = base64Data.split(',')[1];
                 preview.innerHTML = `<img src="${base64Data}" style="max-height: 120px; border-radius: 6px; border: 1px solid #ccc;" alt="Preview">`;
             };
             reader.readAsDataURL(file);
@@ -354,6 +363,8 @@ export function renderInventoryModule(container) {
             if (item.photo) summaryMap[code].photo = item.photo;
         });
 
+        currentSummaryMap = summaryMap; // Global သိမ်းထားမည်
+
         Object.keys(summaryMap).forEach(code => {
             const item = summaryMap[code];
             const balance = item.inQty - item.outQty;
@@ -388,6 +399,87 @@ export function renderInventoryModule(container) {
             });
         });
     }
+
+    // 🌟 Excel Export Function 🌟
+    document.getElementById('btn-export-excel').addEventListener('click', () => {
+        if (!currentSummaryMap || Object.keys(currentSummaryMap).length === 0) {
+            alert("⚠️ ထုတ်ယူရန် Stock Data မရှိသေးပါ။");
+            return;
+        }
+
+        let tableHtml = `
+            <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+            <head>
+                <meta charset="UTF-8">
+                <!--[if gte mso 9]>
+                <xml>
+                    <x:ExcelWorkbook>
+                        <x:ExcelWorksheets>
+                            <x:ExcelWorksheet>
+                                <x:Name>Stock Summary</x:Name>
+                                <x:WorksheetOptions>
+                                    <x:DisplayGridlines/>
+                                </x:WorksheetOptions>
+                            </x:ExcelWorksheet>
+                        </x:ExcelWorksheets>
+                    </x:ExcelWorkbook>
+                </xml>
+                <![endif]-->
+                <style>
+                    table { border-collapse: collapse; font-family: 'Pyidaungsu', 'Myanmar Text', sans-serif; }
+                    th { background-color: #2563eb; color: white; font-weight: bold; border: 1px solid #ccc; padding: 8px; text-align: center; }
+                    td { border: 1px solid #ccc; padding: 8px; }
+                    .num { text-align: right; }
+                </style>
+            </head>
+            <body>
+                <h2>📊 Stock Status Overview Summary</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Item Code</th>
+                            <th>Item Name</th>
+                            <th>Item Type</th>
+                            <th>Total IN</th>
+                            <th>Total OUT</th>
+                            <th>Current Balance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+
+        Object.keys(currentSummaryMap).forEach(code => {
+            const item = currentSummaryMap[code];
+            const balance = item.inQty - item.outQty;
+            tableHtml += `
+                <tr>
+                    <td>${code}</td>
+                    <td>${item.itemName}</td>
+                    <td>${item.itemCategory}</td>
+                    <td class="num">${item.inQty}</td>
+                    <td class="num">${item.outQty}</td>
+                    <td class="num">${balance}</td>
+                </tr>
+            `;
+        });
+
+        tableHtml += `
+                    </tbody>
+                </table>
+            </body>
+            </html>
+        `;
+
+        const blob = new Blob(['\uFEFF' + tableHtml], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Stock_Status_Overview_${new Date().toISOString().split('T')[0]}.xls`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    });
 
     // Image Modal Close Events
     document.getElementById('image-modal-close').addEventListener('click', () => {
