@@ -334,4 +334,4 @@ export async function renderDashboard(container) {
             document.getElementById('image-modal').style.display = 'none';
         }
     });
-}
+}////////
