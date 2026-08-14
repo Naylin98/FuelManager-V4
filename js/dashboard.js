@@ -219,7 +219,7 @@ export async function renderDashboard(container) {
             return;
         }
 
-        dataToRender.forEach(item => {
+        [...dataToRender].reverse().forEach(item => {
             const tr = document.createElement('tr');
             tr.style.borderBottom = '1px solid rgba(150,150,150,0.15)';
 
@@ -334,4 +334,4 @@ export async function renderDashboard(container) {
             document.getElementById('image-modal').style.display = 'none';
         }
     });
-}////////
+}

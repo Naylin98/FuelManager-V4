@@ -177,7 +177,7 @@ export function renderFuelForm(container) {
             totalAmountInput.value = vocAmount.toLocaleString();
             const variance = vocAmount - calculatedTotal;
             const sign = variance > 0 ? '+' : ''; 
-            marksInput.value = `${sign}${variance.toLocaleString()}`;
+            marksInput.value = `အစွန်းထွက် (${sign}${variance.toLocaleString()})`;;
             
             if (variance > 0) marksInput.style.color = '#10b981'; 
             else if (variance < 0) marksInput.style.color = '#ef4444'; 

@@ -20,6 +20,67 @@ function doGet(e) {
     var depts = rows.map(function(row) { return row[0]; }).filter(String);
     return ContentService.createTextOutput(JSON.stringify(depts)).setMimeType(ContentService.MimeType.JSON);
   }
+  // 🌟 ၄။ Viber Card အတွက် သီးသန့် ခေါ်ယူမည့် Action (Sheet မူရင်း မြန်မာစာအတိုင်း)
+  if (action === "viber") {
+    var sheet = ss.getSheetByName("Fuel Management Database");
+    if (!sheet) {
+      return ContentService.createTextOutput(JSON.stringify({ error: "Sheet မတွေ့ရှိပါ။" })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    var lastRow = sheet.getLastRow();
+    if (lastRow <= 1) {
+      return ContentService.createTextOutput(JSON.stringify({ error: "Sheet ထဲတွင် ဒေတာ မရှိသေးပါ။" })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    var row = sheet.getRange(lastRow, 1, 1, 14).getValues()[0];
+
+    var id = String(row[0] || '-');
+    var boatId = String(row[3] || '-');
+    var department = String(row[4] || '-');
+    
+    // 💡 Sheet ထဲရှိ မြန်မာစာ မူရင်းအတိုင်း အပြည့်အဝ ယူမည် (စာလုံးရေ မဖြတ်ပါ)
+    var itineraries = String(row[2] || '-');
+    
+    var liter = row[7] ? Number(row[7]).toLocaleString() + ' L' : '0 L';
+    var totalAmount = row[9] ? Number(row[9]).toLocaleString() + ' MMK' : '0 MMK';
+    var issuedDate = row[5] ? (row[5] instanceof Date ? Utilities.formatDate(row[5], ss.getSpreadsheetTimeZone(), "dd/MMM/yyyy") : String(row[5])) : '-';
+
+    // Base64 Image Conversion
+    var rawPhotoUrl = String(row[11] || '');
+    var fileId = "";
+    var photoBase64 = "";
+
+    if (rawPhotoUrl.includes('drive.google.com/file/d/')) {
+      var match = rawPhotoUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+      if (match && match[1]) fileId = match[1];
+    } else if (rawPhotoUrl.includes('id=')) {
+      var matchId = rawPhotoUrl.match(/id=([a-zA-Z0-9_-]+)/);
+      if (matchId && matchId[1]) fileId = matchId[1];
+    }
+
+    if (fileId) {
+      try {
+        var file = DriveApp.getFileById(fileId);
+        var blob = file.getBlob();
+        photoBase64 = "data:" + blob.getContentType() + ";base64," + Utilities.base64Encode(blob.getBytes());
+      } catch(e) {
+        console.error("Base64 error: " + e);
+      }
+    }
+
+    return ContentService.createTextOutput(JSON.stringify({
+      success: true,
+      id: id,
+      boatId: boatId,
+      department: department,
+      itineraries: itineraries,
+      liter: liter,
+      totalAmount: totalAmount,
+      issuedDate: issuedDate,
+      photoBase64: photoBase64
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+
   if (e.parameter.action === 'getSignature') {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheet = ss.getSheetByName("signature image");
@@ -29,10 +90,10 @@ function doGet(e) {
     if (sheet) {
       url = sheet.getRange("A1").getValue(); // Sheet ထဲရှိ Drive URL ကို ယူမည်
       
-      // Excel Export အတွက် Drive ပုံကို Base64 အဖြစ် ပြောင်းပေးမည်
       if (url && url.indexOf("id=") > -1) {
         try {
-          var fileId = url.split("id=")[1];
+          // 🌟 ပြင်ဆင်ချက်: &sz=w500 စသည့် parameter များကို ဖယ်ထုတ်ပြီး File ID သီးသန့်ယူခြင်း
+          var fileId = url.split("id=")[1].split("&")[0]; 
           var file = DriveApp.getFileById(fileId);
           var blob = file.getBlob();
           base64 = "data:" + blob.getContentType() + ";base64," + Utilities.base64Encode(blob.getBytes());
@@ -78,8 +139,9 @@ function doGet(e) {
     }
 
     // File ID ရရှိပါက sz=w500 ပါသည့် URL ပုံစံသို့ ပြောင်းလဲခြင်း
+    // File ID ရရှိပါက Google Drive Thumbnail API ပုံစံသို့ ပြောင်းလဲခြင်း (CORS ပြဿနာကို သက်သာစေရန်)
     if (fileId) {
-      thumbnailUrl = "https://drive.google.com/uc?export=view&id=" + fileId + "&sz=w500";
+        thumbnailUrl = "https://drive.google.com/thumbnail?id=" + fileId + "&sz=w500";
     }
 
     return {
@@ -109,25 +171,62 @@ function doPost(e) {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var payload = JSON.parse(e.postData.contents);
     var action = payload.action;
-    var data = payload.data;
     
+    // Frontend မှ data ကို payload.data အနေဖြင့်ပို့လျှင် ၎င်းကိုယူမည်၊ တိုက်ရိုက်ပို့လျှင် payload ကိုပင် data အဖြစ်ယူမည်
+    var data = payload.data || payload; 
+    
+    // --- 0. Signup & Login Actions ---
+    if (action === "signup") {
+      var userSheet = ss.getSheetByName("User Record");
+      if (!userSheet) return ContentService.createTextOutput(JSON.stringify({ success: false, message: "Sheet not found!" })).setMimeType(ContentService.MimeType.JSON);
+      
+      var dataRange = userSheet.getDataRange().getValues();
+      for (var i = 1; i < dataRange.length; i++) {
+        if (dataRange[i][1] === data.username) {
+          return ContentService.createTextOutput(JSON.stringify({ success: false, message: "Username already exists!" })).setMimeType(ContentService.MimeType.JSON);
+        }
+      }
+      
+      var allowedTabs = data.role === "Admin" ? "All" : (data.allowedTabs ? data.allowedTabs.join(",") : "");
+      userSheet.appendRow([new Date(), data.username, data.password, data.role, allowedTabs]);
+      
+      return ContentService.createTextOutput(JSON.stringify({ success: true, message: "Signup successful!" })).setMimeType(ContentService.MimeType.JSON);
+      
+    } else if (action === "login") {
+      var loginSheet = ss.getSheetByName("User Record"); // ပြင်ဆင်ချက် - Login အတွက် Sheet ပြန်ခေါ်ပေးရမည်
+      var dataRange = loginSheet.getDataRange().getValues();
+      for (var i = 1; i < dataRange.length; i++) {
+        if (dataRange[i][1] === data.username && dataRange[i][2] === data.password) {
+          return ContentService.createTextOutput(JSON.stringify({ 
+            success: true, 
+            user: {
+              username: dataRange[i][1],
+              role: dataRange[i][3],
+              allowedTabs: dataRange[i][4]
+            }
+          })).setMimeType(ContentService.MimeType.JSON);
+        }
+      }
+      return ContentService.createTextOutput(JSON.stringify({ success: false, message: "Invalid username or password" })).setMimeType(ContentService.MimeType.JSON);
+    }
+
     // --- 1. Boat ID Actions ---
     if (action === 'add_boat') {
-      var sheet = ss.getSheetByName("Boat_IDs");
-      if (!sheet) { sheet = ss.insertSheet("Boat_IDs"); sheet.appendRow(["Boat ID"]); }
-      sheet.appendRow([data.value]);
+      var boatSheet = ss.getSheetByName("Boat_IDs");
+      if (!boatSheet) { boatSheet = ss.insertSheet("Boat_IDs"); boatSheet.appendRow(["Boat ID"]); }
+      boatSheet.appendRow([data.value]);
       return ContentService.createTextOutput(JSON.stringify({ "result": "success" })).setMimeType(ContentService.MimeType.JSON);
     }
     if (action === 'edit_boat' || action === 'delete_boat') {
-      var sheet = ss.getSheetByName("Boat_IDs");
-      if (sheet) {
-        var rows = sheet.getDataRange().getValues();
+      var boatSheetEdit = ss.getSheetByName("Boat_IDs");
+      if (boatSheetEdit) {
+        var rows = boatSheetEdit.getDataRange().getValues();
         for (var i = 1; i < rows.length; i++) {
           if (rows[i][0] == data.oldValue) {
             if (action === 'delete_boat') {
-              sheet.deleteRow(i + 1);
+              boatSheetEdit.deleteRow(i + 1);
             } else {
-              sheet.getRange(i + 1, 1).setValue(data.newValue);
+              boatSheetEdit.getRange(i + 1, 1).setValue(data.newValue);
             }
             break;
           }
@@ -138,110 +237,95 @@ function doPost(e) {
 
     // --- 2. Department Actions ---
     if (action === 'add_department') {
-      var sheet = ss.getSheetByName("Departments");
-      if (!sheet) { sheet = ss.insertSheet("Departments"); sheet.appendRow(["Department"]); }
-      sheet.appendRow([data.value]);
+      var deptSheet = ss.getSheetByName("Departments");
+      if (!deptSheet) { deptSheet = ss.insertSheet("Departments"); deptSheet.appendRow(["Department"]); }
+      deptSheet.appendRow([data.value]);
       return ContentService.createTextOutput(JSON.stringify({ "result": "success" })).setMimeType(ContentService.MimeType.JSON);
     }
     if (action === 'edit_department') {
-      var sheet = ss.getSheetByName("Departments");
-      if (sheet) {
-        var rows = sheet.getDataRange().getValues();
+      var deptSheetEdit = ss.getSheetByName("Departments");
+      if (deptSheetEdit) {
+        var rows = deptSheetEdit.getDataRange().getValues();
         for (var i = 1; i < rows.length; i++) {
           if (rows[i][0] == data.oldValue) {
-            sheet.getRange(i + 1, 1).setValue(data.newValue);
+            deptSheetEdit.getRange(i + 1, 1).setValue(data.newValue);
             break;
           }
         }
       }
       return ContentService.createTextOutput(JSON.stringify({ "result": "success" })).setMimeType(ContentService.MimeType.JSON);
     }
-// Code.gs ထဲရှိ doPost function ထဲမှ ဤအပိုင်းကို အောက်ပါအတိုင်း ပြင်ဆင်ပါ
+
+    // --- Save Signature ---
     if (action === 'saveSignature') {
-      
-      // 🚨 သင့်ရဲ့ Drive Folder ID ကို ဒီမှာထည့်ပါ 🚨
       var folderId = "1wBtqEFlnRXPRk2P8Qn_sLdHB9SoB7lNs"; 
       var folder = DriveApp.getFolderById(folderId);
-      
-      // 🌟 ပြင်ဆင်ချက် - requestBody အစား payload ကို အသုံးပြုပါ 🌟
-      var base64Data = payload.signature; 
+      var base64Data = payload.signature || data.signature; // Fix for data source
       var contentType = "image/png";
       
-      // Base64 Header ကို ဖြတ်ထုတ်ခြင်း
       if (base64Data.indexOf("data:") === 0) {
         var parts = base64Data.split(',');
         contentType = parts[0].split(';')[0].split(':')[1];
         base64Data = parts[1];
       }
       
-      // Drive ထဲသို့ ပုံဖန်တီး၍ သိမ်းဆည်းခြင်း
       var blob = Utilities.newBlob(Utilities.base64Decode(base64Data), contentType, "Signature_" + new Date().getTime());
       var file = folder.createFile(blob);
-      
-      // URL ဖြင့် ဝင်ကြည့်နိုင်ရန် Permission ပေးခြင်း
       file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
       var fileUrl = "https://drive.google.com/uc?id=" + file.getId()+"&sz=w500";
       
-      // Sheet ထဲသို့ URL သိမ်းခြင်း
-      var sheet = ss.getSheetByName("signature image");
-      if (!sheet) {
-        sheet = ss.insertSheet("signature image");
-      }
-      sheet.getRange("A1").setValue(fileUrl);
+      var sigSheet = ss.getSheetByName("signature image");
+      if (!sigSheet) { sigSheet = ss.insertSheet("signature image"); }
+      sigSheet.getRange("A1").setValue(fileUrl);
       
-      return ContentService.createTextOutput(JSON.stringify({ status: 'success', url: fileUrl }))
-                           .setMimeType(ContentService.MimeType.JSON);
-    }    // --- 3. Main Fuel Entry Actions (Create / Update / Delete) ---
-   var sheet = ss.getActiveSheet();
-  var photoUrl = data.photo || "";
-  if (photoUrl && photoUrl.startsWith("data:image")) {
-    photoUrl = saveImageToGoogleDrive(photoUrl, data.id);
-  }
-  
-  if (action === 'create') {
-    sheet.appendRow([
-      data.id,             // Col A: ID
-      data.filledDate,     // Col B: Filled Date
-      data.itineraries,    // Col C: Itineraries
-      data.boatId,         // Col D: Boat ID
-      data.department,     // Col E: Departments
-      data.issuedDate,     // Col F: Issued Date
-      data.priceDrum,      // Col G: Price/Drum
-      data.liter,          // Col H: Liter
-      data.priceLiter,     // Col I: Price/Liter
-      data.totalAmount,    // Col J: Total Amount
-      data.marks,          // Col K: Marks
-      photoUrl,            // Col L: Photo (✅ ဤနေရာတွင် data.photo အစား photoUrl သို့ ပြင်ဆင်ထားသည်)
-      data.vocAmount,      // Col M: Voc Amount
-      data.createdAt       // Col N: Created At
-    ]);
-  } else if (action === 'update' || action === 'delete') {
-    var rows = sheet.getDataRange().getValues();
-    var rowIndex = -1;
-    for (var i = 1; i < rows.length; i++) {
-      if (rows[i][0] === data.id) { rowIndex = i + 1; break; }
-    }
-    if (rowIndex > -1) {
-      if (action === 'update') {
-        var updatedRow = [
-          data.id, data.filledDate, data.itineraries, 
-          data.boatId, data.department, data.issuedDate, data.priceDrum, 
-          data.liter, data.priceLiter, data.totalAmount, data.marks, 
-          photoUrl, data.vocAmount, data.createdAt
-        ];
-        sheet.getRange(rowIndex, 1, 1, 14).setValues([updatedRow]);
-      } else if (action === 'delete') {
-        sheet.deleteRow(rowIndex);
-      }
-    }
-  }
-  
-  return ContentService.createTextOutput(JSON.stringify({ "result": "success", "action": action })).setMimeType(ContentService.MimeType.JSON);
-} catch (error) {
-  return ContentService.createTextOutput(JSON.stringify({ "result": "error", "message": error.toString() })).setMimeType(ContentService.MimeType.JSON);
-}
-}
+      return ContentService.createTextOutput(JSON.stringify({ status: 'success', url: fileUrl })).setMimeType(ContentService.MimeType.JSON);
+    } 
 
+    // --- 3. Main Fuel Entry Actions (Create / Update / Delete) ---
+    if (action === 'create' || action === 'update' || action === 'delete') {
+      var mainSheet = ss.getActiveSheet();
+      var photoUrl = data.photo || "";
+      
+      // မှတ်ချက်: ဤနေရာတွင် saveImageToGoogleDrive function ရှိနေပြီဟု ယူဆပါသည်
+      if (photoUrl && photoUrl.startsWith("data:image")) {
+        photoUrl = saveImageToGoogleDrive(photoUrl, data.id);
+      }
+      
+      if (action === 'create') {
+        mainSheet.appendRow([
+          data.id, data.filledDate, data.itineraries, data.boatId, data.department, 
+          data.issuedDate, data.priceDrum, data.liter, data.priceLiter, data.totalAmount, 
+          data.marks, photoUrl, data.vocAmount, data.createdAt
+        ]);
+      } else if (action === 'update' || action === 'delete') {
+        var rows = mainSheet.getDataRange().getValues();
+        var rowIndex = -1;
+        for (var i = 1; i < rows.length; i++) {
+          if (rows[i][0] === data.id) { rowIndex = i + 1; break; }
+        }
+        if (rowIndex > -1) {
+          if (action === 'update') {
+            var updatedRow = [
+              data.id, data.filledDate, data.itineraries, data.boatId, data.department, 
+              data.issuedDate, data.priceDrum, data.liter, data.priceLiter, data.totalAmount, 
+              data.marks, photoUrl, data.vocAmount, data.createdAt
+            ];
+            mainSheet.getRange(rowIndex, 1, 1, 14).setValues([updatedRow]);
+          } else if (action === 'delete') {
+            mainSheet.deleteRow(rowIndex);
+          }
+        }
+      }
+      return ContentService.createTextOutput(JSON.stringify({ "result": "success", "action": action })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // ဘာ Action မှ မကိုက်ညီပါက
+    return ContentService.createTextOutput(JSON.stringify({ "result": "error", "message": "Unknown action requested" })).setMimeType(ContentService.MimeType.JSON);
+
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({ "result": "error", "message": error.toString() })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
 // Google Drive သို့ ပုံသိမ်းသည့် Function
 function saveImageToGoogleDrive(base64Data, fileId) {
   try {

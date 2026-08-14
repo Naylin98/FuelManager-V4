@@ -1,12 +1,10 @@
 // js/app.js
 
-// မှတ်ချက် - အောက်ပါဖိုင်များကို မတည်ဆောက်ရသေးပါက // ဖြင့် ခေတ္တပိတ်ထားရပါမည်
-// ၎င်းတို့ကို အမှန်တကယ် ရေးသားပြီးချိန်မှသာ // ကို ပြန်ဖြုတ်ပေးပါ
-   import { renderDashboard } from './dashboard.js';
-   import { renderFuelForm } from './fuel.js';
-   import { renderDraftModule } from './draft.js';
-// import { renderInventoryModule } from './inventory.js';//
-   import { renderReportModule } from './report.js';
+import { renderDashboard } from './dashboard.js';
+import { renderFuelForm } from './fuel.js';
+import { renderDraftModule } from './draft.js';
+import { renderInventoryModule } from './inventory.js';
+import { renderReportModule } from './report.js';
 // import { renderSettingsModule } from './settings.js';
 
 import { checkAuthGuard, renderLoginScreen } from './auth.js';
@@ -96,15 +94,14 @@ function handleRoute() {
         if (path === '/dashboard') {
             renderDashboard(appContent);
         } else if (path === '/fuel') {
-            // CSS လှမ်းခေါ်မည် (ရှိပါက)
             loadCSS('form-css', 'css/form.css');
-            // ယခုမှစ၍ အမှန်တကယ်ရေးသားထားသော fuel.js မှ လုပ်ဆောင်ချက်ကို ခေါ်ယူမည်
             renderFuelForm(appContent);
         } else if (path === '/draft') {
             loadCSS('draft-css', 'css/draft.css');
             renderDraftModule(appContent);
         } else if (path === '/inventory') {
-            appContent.innerHTML = `<h3>📦 Inventory</h3><p>Inventory Module is under construction...</p>`;
+            // appContent သို့ တိုက်ရိုက် ရေးဆွဲပြသရန် ပြင်ဆင်ထားသည်
+            renderInventoryModule(appContent);
         } else if (path === '/report') {
             renderReportModule(appContent);
         } else if (path === '/settings') {
