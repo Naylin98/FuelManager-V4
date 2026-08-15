@@ -1,5 +1,5 @@
 // js/dashboard.js
-import { fetchTransactionsFromSheet } from './api.js';
+import { fetchTransactionsFromSheet, fetchInventoryFromSheet } from './api.js';
 
 export async function renderDashboard(container) {
     // 1. Initial UI Loading State & HTML Structure
@@ -55,7 +55,7 @@ export async function renderDashboard(container) {
                 </div>
 
                 <!-- Monthly Fuel Entries Table View Section -->
-                <div class="glass-panel" style="padding: 25px; border-radius: 16px;">
+                <div class="glass-panel" style="padding: 25px; border-radius: 16px; margin-bottom: 30px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
                         <h3 style="margin: 0; font-size: 18px;">📑 Fuel Transactions & Vouchers</h3>
                     </div>
@@ -80,6 +80,30 @@ export async function renderDashboard(container) {
                         </table>
                     </div>
                 </div>
+
+                <!-- 📊 Stock Status Overview Table View Section -->
+                <div class="glass-panel" style="padding: 25px; border-radius: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
+                        <h3 style="margin: 0; font-size: 18px;">📊 Stock Status Overview</h3>
+                    </div>
+
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+                            <thead>
+                                <tr style="border-bottom: 2px solid rgba(150,150,150,0.3); background: rgba(150,150,150,0.05);">
+                                    <th style="padding: 12px; font-weight: 600;">Item Name</th>
+                                    <th style="padding: 12px; font-weight: 600; text-align: right;">Total IN / Capacity</th>
+                                    <th style="padding: 12px; font-weight: 600; text-align: right;">Total OUT</th>
+                                    <th style="padding: 12px; font-weight: 600; text-align: right;">Current Balance</th>
+                                    <th style="padding: 12px; font-weight: 600; text-align: center;">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stock-table-tbody">
+                                <!-- Dynamic stock rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -92,10 +116,17 @@ export async function renderDashboard(container) {
         </div>
     `;
 
-    // 2. Fetch Data from Google Sheet API
+    // 2. Fetch Data Parallelly from Google Sheet API
     let entries = [];
+    let inventory = [];
+
     try {
-        entries = await fetchTransactionsFromSheet();
+        const [transData, invData] = await Promise.all([
+            fetchTransactionsFromSheet(),
+            typeof fetchInventoryFromSheet === 'function' ? fetchInventoryFromSheet().catch(() => []) : Promise.resolve([])
+        ]);
+        entries = Array.isArray(transData) ? transData : (transData?.data || []);
+        inventory = Array.isArray(invData) ? invData : (invData?.data || []);
     } catch (err) {
         console.error("Dashboard Data Fetch Error:", err);
         document.getElementById('dashboard-loading').innerHTML = `
@@ -115,36 +146,41 @@ export async function renderDashboard(container) {
     document.getElementById('dashboard-content').style.display = 'block';
 
     // 3. Helper Functions Section
-    // 3.1 Date မှ "MMM YYYY" (ဥပမာ "Aug 2026") ထုတ်ပေးသည့် Helper
+    const monthsNameArr = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    
     const getMonthYearKey = (dateStr) => {
         if (!dateStr) return 'Unknown';
-        const parts = dateStr.split('/');
-        if (parts.length === 3) {
-            return `${parts[1]} ${parts[2]}`;
+        
+        if (typeof dateStr === 'string' && dateStr.includes('/')) {
+            const parts = dateStr.split('/');
+            if (parts.length === 3) {
+                const monthIdx = parseInt(parts[1], 10) - 1;
+                if (monthIdx >= 0 && monthIdx < 12) {
+                    return `${monthsNameArr[monthIdx]} ${parts[2]}`;
+                }
+            }
         }
+        
         const d = new Date(dateStr);
         if (!isNaN(d.getTime())) {
-            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-            return `${months[d.getMonth()]} ${d.getFullYear()}`;
+            return `${monthsNameArr[d.getMonth()]} ${d.getFullYear()}`;
         }
         return 'Other';
     };
 
-    // 3.2 Date ကို dd/mmm/yyyy ပုံစံပြောင်းပေးမည့် Helper
     const formatDateToDDMMMYYYY = (dateStr) => {
         if (!dateStr) return '-';
         const d = new Date(dateStr);
         if (!isNaN(d.getTime())) {
             const day = String(d.getDate()).padStart(2, '0');
-            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-            const month = months[d.getMonth()];
+            const month = monthsNameArr[d.getMonth()];
             const year = d.getFullYear();
             return `${day}/${month}/${year}`;
         }
         return dateStr;
     };
 
-    // 4. Dynamic Statistics Cards Render Function (Total Entries, Total Liter, Total Amount)
+    // 4. Dynamic Statistics Cards Render Function
     const renderStatsCards = (data) => {
         const totalEntries = data.length;
         const totalLiters = data.reduce((sum, item) => sum + (parseFloat(item.liter) || 0), 0);
@@ -209,7 +245,7 @@ export async function renderDashboard(container) {
         });
     };
 
-    // 6. Dynamic Table Render Function
+    // 6. Dynamic Fuel Transactions Table Render Function
     const tbody = document.getElementById('entries-table-tbody');
     const renderTableEntries = (dataToRender) => {
         tbody.innerHTML = '';
@@ -274,14 +310,99 @@ export async function renderDashboard(container) {
         });
     };
 
-    // 7. Master Function - Dashboard တစ်ခုလုံးအား အသစ်ပြန်လည် ရေးဆွဲပေးမည့် Function
+    // 7. Dynamic Stock Status Overview Table Render Function (Grouped & Aggregated)
+    const stockTbody = document.getElementById('stock-table-tbody');
+    const renderStockStatusTable = (invData, allEntries) => {
+        stockTbody.innerHTML = '';
+
+        const actualInvData = Array.isArray(invData) ? invData : [];
+
+        if (actualInvData.length === 0) {
+            // Inventory Sheet မရှိပါက (သို့မဟုတ် မရရှိသေးပါက) Transactions Data အားလုံးမှ Total Issued ကို တွက်ချက်ပြသခြင်း
+            const totalIssuedLiters = allEntries.reduce((sum, item) => sum + (parseFloat(item.liter) || 0), 0);
+            
+            stockTbody.innerHTML = `
+                <tr style="border-bottom: 1px solid rgba(150,150,150,0.15);">
+                    <td style="padding: 12px; font-weight: 600;">⛽ Main Fuel Tank (Diesel)</td>
+                    <td style="padding: 12px; text-align: right; font-weight: 500;">-</td>
+                    <td style="padding: 12px; text-align: right; color: #ef4444; font-weight: 600;">${totalIssuedLiters.toLocaleString()} L</td>
+                    <td style="padding: 12px; text-align: right; color: #2563eb; font-weight: 600;">-</td>
+                    <td style="padding: 12px; text-align: center;">
+                        <span style="background: rgba(59,130,246,0.15); color: #3b82f6; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;">Active</span>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        // Item Code သို့မဟုတ် Item Name အလိုက် ဒေတာများကို Group ဖွဲ့ရန် Map တည်ဆောက်ခြင်း
+        const summaryMap = {};
+
+        actualInvData.forEach(item => {
+            const code = item.itemCode || item.itemName || item.fuelType || item.name || "UNKNOWN";
+            const itemName = item.itemName || item.fuelType || item.name || item['Fuel/Item Name'] || 'Fuel Item';
+
+            if (!summaryMap[code]) {
+                summaryMap[code] = {
+                    itemName: itemName,
+                    inQty: 0,
+                    outQty: 0,
+                    // Direct summary values များ ပါဝင်ပါက ယူရန်
+                    capacity: parseFloat(item.capacity || item.totalReceived || item.openingStock || item.received) || 0,
+                    issued: parseFloat(item.totalIssued || item.usedLiter || item.issued) || 0,
+                    hasDirectSummary: (item.capacity !== undefined || item.totalReceived !== undefined || item.totalIssued !== undefined || item.currentStock !== undefined)
+                };
+            }
+
+            const qty = parseFloat(item.quantity) || 0;
+            const itemType = (item.type || item.Type || "").toUpperCase();
+
+            if (itemType === 'IN') {
+                summaryMap[code].inQty += qty;
+            } else if (itemType === 'OUT') {
+                summaryMap[code].outQty += qty;
+            }
+        });
+
+        // Group ထားသော အချက်အလက်များအတိုင်း Table Rows Render ပြုလုပ်ခြင်း
+        Object.keys(summaryMap).forEach(code => {
+            const item = summaryMap[code];
+
+            const capacity = item.hasDirectSummary && item.capacity > 0 ? item.capacity : item.inQty;
+            const issued = item.hasDirectSummary && item.issued > 0 ? item.issued : item.outQty;
+            const currentStock = capacity - issued;
+
+            let statusBadge = `<span style="background: rgba(34,197,94,0.15); color: #22c55e; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;">In Stock</span>`;
+            if (currentStock <= 0) {
+                statusBadge = `<span style="background: rgba(239,68,68,0.15); color: #ef4444; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;">Out of Stock</span>`;
+            } else if (capacity > 0 && currentStock < capacity * 0.2) {
+                statusBadge = `<span style="background: rgba(234,179,8,0.15); color: #eab308; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;">Low Stock</span>`;
+            }
+
+            const tr = document.createElement('tr');
+            tr.style.borderBottom = '1px solid rgba(150,150,150,0.15)';
+            tr.innerHTML = `
+                <td style="padding: 12px; font-weight: 600;">📦 ${item.itemName}</td>
+                <td style="padding: 12px; text-align: right; font-weight: 500;">${capacity.toLocaleString()}</td>
+                <td style="padding: 12px; text-align: right; color: #ef4444; font-weight: 600;">${issued.toLocaleString()}</td>
+                <td style="padding: 12px; text-align: right; color: #2563eb; font-weight: 600;">${currentStock.toLocaleString()}</td>
+                <td style="padding: 12px; text-align: center;">${statusBadge}</td>
+            `;
+            stockTbody.appendChild(tr);
+        });
+    };
+
+    // 8. Master Function - Dashboard တစ်ခုလုံးအား အသစ်ပြန်လည် ရေးဆွဲပေးမည့် Function
     const updateDashboardView = (filteredEntries) => {
         renderStatsCards(filteredEntries);
         renderDepartmentChart(filteredEntries);
         renderTableEntries(filteredEntries);
+        
+        // Stock Table တွင် Date Filter မပါစေဘဲ Total `entries` ကိုသာ အမြဲတမ်း ပေးပို့ပါသည်
+        renderStockStatusTable(inventory, entries);
     };
 
-    // 8. Month Filter Dropdown သို့ Data များ ထည့်သွင်းခြင်း
+    // 9. Month Filter Dropdown သို့ Data များ ထည့်သွင်းခြင်း
     const monthSelect = document.getElementById('month-filter');
     const uniqueMonths = [...new Set(entries.map(item => getMonthYearKey(item.filledDate)))];
     
@@ -294,27 +415,20 @@ export async function renderDashboard(container) {
         }
     });
 
-    // 9. Initial Render (လက်ရှိရောက်နေသော လ ကို အလိုအလျောက် ရွေးချယ်ပြသပေးခြင်း)
+    // 10. Initial Render Logic
     const now = new Date();
-    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    const currentMonthKey = `${monthNames[now.getMonth()]} ${now.getFullYear()}`;
+    const currentMonthKey = `${monthsNameArr[now.getMonth()]} ${now.getFullYear()}`;
 
-    // အကယ်၍ Dropdown ထဲတွင် လက်ရှိလ (Current Month) Option မပါသေးပါက ထည့်ပေးခြင်း
-    if (!uniqueMonths.includes(currentMonthKey)) {
-        const opt = document.createElement('option');
-        opt.value = currentMonthKey;
-        opt.textContent = currentMonthKey;
-        monthSelect.appendChild(opt);
+    if (uniqueMonths.includes(currentMonthKey)) {
+        monthSelect.value = currentMonthKey;
+        const initialFiltered = entries.filter(item => getMonthYearKey(item.filledDate) === currentMonthKey);
+        updateDashboardView(initialFiltered);
+    } else {
+        monthSelect.value = 'ALL';
+        updateDashboardView(entries);
     }
 
-    // Default အနေဖြင့် Current Month ကို Select ပြုလုပ်ပေးခြင်း
-    monthSelect.value = currentMonthKey;
-
-    // Current Month အလိုက် Filter စစ်ထုတ်ပြီး စတင်ပြသပေးခြင်း
-    const initialFiltered = entries.filter(item => getMonthYearKey(item.filledDate) === currentMonthKey);
-    updateDashboardView(initialFiltered);
-
-    // 10. Filter Change Event Handler (အသုံးပြုသူမှ လ လဲလှယ် ရွေးချယ်သည့်အခါ)
+    // 11. Filter Change Event Handler
     monthSelect.addEventListener('change', (e) => {
         const selectedMonth = e.target.value;
         if (selectedMonth === 'ALL') {
@@ -325,7 +439,7 @@ export async function renderDashboard(container) {
         }
     });
 
-    // 11. Modal Close Events
+    // 12. Modal Close Events
     document.getElementById('close-modal').addEventListener('click', () => {
         document.getElementById('image-modal').style.display = 'none';
     });
