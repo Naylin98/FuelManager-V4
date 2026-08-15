@@ -68,8 +68,8 @@ body.login-body {
     height: 45px;
     font-size: 20px;
     cursor: pointer;
-    backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
     box-shadow: var(--glass-shadow);
     transition: transform 0.2s;
 }
@@ -78,8 +78,8 @@ body.login-body {
 /* === Glassmorphism Panel === */
 .glass-panel {
     background: var(--glass-bg);
-    backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
     border: 1px solid var(--glass-border);
     border-radius: 20px;
     box-shadow: var(--glass-shadow);
@@ -212,6 +212,7 @@ body.login-body {
     border: 1px solid var(--glass-border);
     padding: 4px 12px 4px 4px;
     border-radius: 30px;
+    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
 }
 
@@ -234,4 +235,179 @@ body.login-body {
     font-weight: 600;
     color: var(--text-main);
     font-size: 14px;
+}
+
+/* Sidebar Logo */
+.sidebar-logo-img {
+    height: 100px;
+    width: auto;
+    object-fit: contain;
+}
+
+/* Hidden Voucher Card Container */
+#voucher-card-container {
+    position: fixed;
+    left: 0;
+    top: 0;
+    opacity: 0;
+    pointer-events: none;
+    z-index: -9999;
+}
+
+#voucher-card {
+    width: 360px;
+    padding: 24px;
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 16px;
+    font-family: 'Pyidaungsu', 'Noto Sans Myanmar', sans-serif;
+    color: #1e293b;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+}
+
+.vc-header {
+    text-align: center;
+    border-bottom: 2px dashed #e2e8f0;
+    padding-bottom: 14px;
+    margin-bottom: 16px;
+}
+
+.vc-logo-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+#vc-logo {
+    height: 80px;
+    width: auto;
+    object-fit: contain;
+}
+
+.vc-title {
+    margin: 0 0 4px 0;
+    color: #1e40af;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.2px;
+}
+
+#vc-id {
+    font-weight: 600;
+    font-size: 12px;
+    color: #64748b;
+    background: #f1f5f9;
+    padding: 2px 8px;
+    border-radius: 12px;
+    display: inline-block;
+}
+
+.vc-body {
+    font-size: 13.5px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.vc-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.vc-row-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.vc-label {
+    color: #475569;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.vc-label-flex {
+    color: #475569;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.vc-value {
+    text-align: right;
+    font-weight: 600;
+    color: #0f172a;
+    white-space: nowrap;
+}
+
+#vc-dept {
+    text-align: right;
+    max-width: 200px;
+    font-weight: 500;
+    overflow-wrap: anywhere;
+    color: #0f172a;
+}
+
+.vc-itinerary-box {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    border-top: 1px dashed #f1f5f9;
+    border-bottom: 1px dashed #f1f5f9;
+    padding: 8px 0;
+}
+
+#vc-itineraries {
+    text-align: left;
+    overflow-wrap: anywhere;
+    line-height: 1.7;
+    font-weight: 500;
+    color: #0f172a;
+    margin-top: 2px;
+}
+
+#vc-liter {
+    text-align: right;
+    color: #2563eb;
+    font-weight: 700;
+    font-size: 15px;
+    white-space: nowrap;
+}
+
+#vc-date {
+    text-align: right;
+    font-weight: 500;
+    color: #64748b;
+    white-space: nowrap;
+}
+
+#vc-photo-box {
+    margin-top: 16px;
+    text-align: center;
+    display: none;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 12px;
+}
+
+.vc-photo-title {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+#vc-img {
+    width: 100%;
+    max-height: 220px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    object-fit: cover;
 }

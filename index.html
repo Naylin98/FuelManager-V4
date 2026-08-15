@@ -7,21 +7,20 @@
     
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<!-- Google Font (Noto Sans Myanmar) ဖြင့် မြန်မာစာ ပုံထွက် မှန်ကန်စေရန် -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Myanmar:wght@400;500;600;700&display=swap" rel="stylesheet">
-<!-- Pyidaungsu Font CDN -->
-<link href="https://fonts.googleapis.com/css2?family=Pyidaungsu&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Pyidaungsu:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Myanmar:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Pyidaungsu Font CDN -->
+    <link href="https://fonts.googleapis.com/css2?family=Pyidaungsu:wght@400;700&display=swap" rel="stylesheet">
+    
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Excel & PDF Export Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
-<!-- html2canvas Library (Screenshot ရိုက်ရန်) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+    <!-- html2canvas Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
 
     <!-- CSS Files -->
     <link rel="stylesheet" href="css/app.css">
@@ -35,13 +34,12 @@
         <!-- Sidebar -->
         <aside class="sidebar glass-panel" id="sidebar">
             <div class="sidebar-header">
-    <div class="logo-icon">
-        <!-- height ကို 48px သို့ တိုးမြှင့်ထားပါသည် -->
-        <img src="https://lh3.googleusercontent.com/d/1mDAnPBjTHZt7gLeI1etXZBhlhnlPOhGz" alt="Logo" style="height: 100px; width: auto; object-fit: contain;">
-    </div>
-    <h2 class="logo-text">FuelPro</h2>
-    <button class="mobile-close-btn" id="mobile-close">✖</button>
-</div>
+                <div class="logo-icon">
+                    <img src="https://lh3.googleusercontent.com/d/1mDAnPBjTHZt7gLeI1etXZBhlhnlPOhGz" alt="Logo" class="sidebar-logo-img">
+                </div>
+                <h2 class="logo-text">FuelPro</h2>
+                <button class="mobile-close-btn" id="mobile-close">✖</button>
+            </div>
             
             <nav class="sidebar-nav" id="sidebar-nav">
                 <a href="#/dashboard" class="nav-item active" data-path="/dashboard">
@@ -60,7 +58,6 @@
                     <span class="nav-icon">📦</span>
                     <span class="nav-text">Inventory</span>
                 </a>
-                <!-- Reports -->
                 <a href="#/reports" class="nav-item" data-path="/reports">
                     <span class="nav-icon">📑</span>
                     <span class="nav-text">Reports</span>
@@ -96,14 +93,10 @@
                     <button id="theme-toggle" class="icon-btn theme-btn-small" aria-label="Toggle Theme">
                         <span id="theme-icon">🌙</span>
                     </button>
-                    <!-- Top Right Profile Section -->
-<div class="user-profile">
-    <!-- Circle Avatar အတွက် id="user-avatar" -->
-    <div id="user-avatar" class="avatar-circle">A</div>
-    
-    <!-- User Name အတွက် id="user-name" -->
-    <span id="user-name">Admin</span>
-</div>
+                    <div class="user-profile">
+                        <div id="user-avatar" class="avatar-circle">A</div>
+                        <span id="user-name">Admin</span>
+                    </div>
                 </div>
             </header>
 
@@ -117,83 +110,65 @@
         </div>
     </div>
 
+    <!-- Voucher Hidden Template -->
+    <div id="voucher-card-container">
+        <div id="voucher-card">
+            
+            <!-- Header Section -->
+            <div class="vc-header">
+                <div class="vc-logo-box">
+                    <img id="vc-logo" 
+                         src="https://lh3.googleusercontent.com/d/1mDAnPBjTHZt7gLeI1etXZBhlhnlPOhGz" 
+                         alt="Logo">
+                </div>
+                
+                <h2 class="vc-title">Fuel Entry Voucher</h2>
+                <span id="vc-id">ID: -</span>
+            </div>
 
-<div id="voucher-card-container" style="position: fixed; left: 0; top: 0; opacity: 0; pointer-events: none; z-index: -9999;">
-  <div id="voucher-card" style="width: 360px; padding: 24px; background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 16px; font-family: 'Pyidaungsu', 'Noto Sans Myanmar', sans-serif; color: #1e293b; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);">
-    
-    <!-- Header Section -->
-    <div style="text-align: center; border-bottom: 2px dashed #e2e8f0; padding-bottom: 14px; margin-bottom: 16px;">
-      <!-- Logo Container -->
-      <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 8px;">
-        <img id="vc-logo" 
-             src="https://lh3.googleusercontent.com/d/1mDAnPBjTHZt7gLeI1etXZBhlhnlPOhGz" 
-             alt="Logo" 
-             style="height: 80px; width: auto; object-fit: contain;">
-      </div>
-      
-      <!-- Title & ID -->
-      <h2 style="margin: 0 0 4px 0; color: #1e40af; font-size: 18px; font-weight: 700; letter-spacing: -0.2px;">
-        Fuel Entry Voucher
-      </h2>
-      <span id="vc-id" style="font-weight: 600; font-size: 12px; color: #64748b; background: #f1f5f9; padding: 2px 8px; border-radius: 12px; display: inline-block;">
-        ID: -
-      </span>
+            <!-- Details Content Section -->
+            <div class="vc-body">
+                
+                <div class="vc-row">
+                    <strong class="vc-label">🛥️ Boat ID:</strong> 
+                    <span id="vc-boat" class="vc-value">-</span>
+                </div>
+
+                <div class="vc-row-top">
+                    <strong class="vc-label">🏢 Dept:</strong> 
+                    <span id="vc-dept">-</span>
+                </div>
+                
+                <div class="vc-itinerary-box">
+                    <strong class="vc-label-flex">📍 Itineraries:</strong> 
+                    <span id="vc-itineraries">-</span>
+                </div>
+
+                <div class="vc-row">
+                    <strong class="vc-label">⛽ Liter:</strong> 
+                    <span id="vc-liter">0 L</span>
+                </div>
+
+                <div class="vc-row">
+                    <strong class="vc-label">📅 Date:</strong> 
+                    <span id="vc-date">-</span>
+                </div>
+
+            </div>
+
+            <!-- Voucher Attachment Photo -->
+            <div id="vc-photo-box">
+                <div class="vc-photo-title">🖼️ Voucher Attachment</div>
+                <img id="vc-img" src="" alt="Voucher Attachment" />
+            </div>
+
+        </div>
     </div>
-
-    <!-- Details Content Section -->
-    <div style="font-size: 13.5px; display: flex; flex-direction: column; gap: 10px;">
-      
-      <!-- Boat ID -->
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <strong style="color: #475569; display: flex; align-items: center; gap: 6px; white-space: nowrap;">🛥️ Boat ID:</strong> 
-        <span id="vc-boat" style="text-align: right; font-weight: 600; color: #0f172a; white-space: nowrap;">-</span>
-      </div>
-
-      <!-- Department -->
-      <!-- Department -->
-<div style="display: flex; justify-content: space-between; align-items: flex-start;">
-  <strong style="color: #475569; display: flex; align-items: center; gap: 6px; white-space: nowrap;">🏢 Dept:</strong> 
-  <span id="vc-dept" style="text-align: right; max-width: 200px; font-weight: 500; overflow-wrap: anywhere; color: #0f172a;">-</span>
-</div>>
-      
-      <!-- Itineraries -->
-      <div style="display: flex; flex-direction: column; gap: 4px; border-top: 1px dashed #f1f5f9; border-bottom: 1px dashed #f1f5f9; padding: 8px 0;">
-        <strong style="color: #475569; display: flex; align-items: center; gap: 6px;">📍 Itineraries:</strong> 
-        <span id="vc-itineraries" style="text-align: left; overflow-wrap: anywhere; line-height: 1.7; font-weight: 500; color: #0f172a; margin-top: 2px;">-</span>
-      </div>
-
-      <!-- Liter (white-space: nowrap ဖြင့် တစ်ကြောင်းတည်း ဖြစ်စေရန် ပြင်ထားသည်) -->
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <strong style="color: #475569; display: flex; align-items: center; gap: 6px; white-space: nowrap;">⛽ Liter:</strong> 
-        <span id="vc-liter" style="text-align: right; color: #2563eb; font-weight: 700; font-size: 15px; white-space: nowrap;">0 L</span>
-      </div>
-
-     
-
-      <!-- Date -->
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <strong style="color: #475569; display: flex; align-items: center; gap: 6px; white-space: nowrap;">📅 Date:</strong> 
-        <span id="vc-date" style="text-align: right; font-weight: 500; color: #64748b; white-space: nowrap;">-</span>
-      </div>
-
-    </div>
-
-    <!-- Voucher Attachment Photo -->
-    <div id="vc-photo-box" style="margin-top: 16px; text-align: center; display: none; border-top: 1px solid #f1f5f9; padding-top: 12px;">
-      <div style="font-size: 12px; font-weight: 600; margin-bottom: 8px; color: #64748b; display: flex; align-items: center; justify-content: center; gap: 4px;">
-        🖼️ Voucher Attachment
-      </div>
-      <img id="vc-img" src="" style="width: 100%; max-height: 220px; border-radius: 10px; border: 1px solid #e2e8f0; object-fit: cover;" />
-    </div>
-
-  </div>
-</div>
 
     <!-- Toast Notification Container -->
     <div id="toast-container" class="toast-container"></div>
 
     <!-- Core Scripts -->
-    <!-- app.js မှ ui.js ကို လှမ်းခေါ်မည်ဖြစ်သဖြင့် ui.js ကို ဤနေရာမှ ဖြုတ်လိုက်ပါသည် (အမှားကင်းစေရန်) -->
     <script type="module" src="js/app.js"></script>
 </body>
 </html>
